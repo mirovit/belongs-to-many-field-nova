@@ -38,6 +38,7 @@ class BelongsToManyField extends Field
      * @param  string  $name
      * @param  string|null  $attribute
      * @param  string|null  $resource
+     *
      * @return void
      */
     //Code by @drsdre
@@ -55,10 +56,11 @@ class BelongsToManyField extends Field
             if (is_subclass_of($model, 'Illuminate\Database\Eloquent\Model')) {
                 $model::saved(function ($model) use ($attribute, $request) {
                     $inp = json_decode($request->$attribute, true);
-                    if ($inp !== null)
+                    if ($inp !== null) {
                         $values = array_column($inp, 'id');
-                    else
+                    } else {
                         $values = [];
+                    }
                     if (!empty($this->pivot())) {
                         $values = array_fill_keys($values, $this->pivot());
                     }
@@ -95,13 +97,15 @@ class BelongsToManyField extends Field
         return $this->withMeta(['height' => $this->height]);
     }
 
-    public function canSelectAll($messageSelectAll = 'Select All', $selectAll = true){
-      $this->selectAll = $selectAll;
-      $this->messageSelectAll = $messageSelectAll;
-      return $this->withMeta(['selectAll' => $this->selectAll, 'messageSelectAll' => $this->messageSelectAll]);
+    public function canSelectAll($messageSelectAll = 'Select All', $selectAll = true)
+    {
+        $this->selectAll = $selectAll;
+        $this->messageSelectAll = $messageSelectAll;
+        return $this->withMeta(['selectAll' => $this->selectAll, 'messageSelectAll' => $this->messageSelectAll]);
     }
 
-    public function showAsListInDetail($showAsList = true){
+    public function showAsListInDetail($showAsList = true)
+    {
         $this->showAsList = $showAsList;
         return $this->withMeta(['showAsList' => $this->showAsList]);
     }
@@ -117,17 +121,21 @@ class BelongsToManyField extends Field
         return $this->withMeta(['multiselectOptions' => $props]);
     }
 
-    public function dependsOn($dependsOnField, $tableKey){
+    public function dependsOn($dependsOnField, $tableKey)
+    {
         return $this->withMeta([
             'dependsOn' => $dependsOnField,
-            'dependsOnKey' => $tableKey
+            'dependsOnKey' => $tableKey,
         ]);
     }
 
     public function rules($rules)
     {
-        $rules = ($rules instanceof Rule || is_string($rules)) ? func_get_args() : $rules;
-        $this->rules = [new ArrayRules($rules)];
+        $this->rules = [
+            new ArrayRules(
+                ($rules instanceof Rule || is_string($rules)) ? func_get_args() : $rules
+            )
+        ];
         return $this;
     }
 
@@ -146,6 +154,8 @@ class BelongsToManyField extends Field
 
     public function jsonSerialize()
     {
+        $request = app(NovaRequest::class);
+
         return array_merge([
             'attribute' => $this->attribute,
             'component' => $this->component(),
@@ -155,7 +165,8 @@ class BelongsToManyField extends Field
             'optionsLabel' => $this->label,
             'panel' => $this->panel,
             'prefixComponent' => true,
-            'readonly' => $this->isReadonly(app(NovaRequest::class)),
+            'readonly' => $this->isReadonly($request),
+            'required' => $this->isRequired($request),
             'resourceNameRelationship' => $this->resourceName,
             'sortable' => $this->sortable,
             'sortableUriKey' => $this->sortableUriKey(),
@@ -171,7 +182,7 @@ class BelongsToManyField extends Field
     {
         return $this->pivotData;
     }
-
+    
     public function setPivot(array $attributes)
     {
         $this->pivotData = $attributes;
